@@ -1,12 +1,83 @@
 Etcd分享
 
-etcd 介绍与在开发中的实践 
+etcd3.0 介绍与在开发中的实践 
 4 August 2016
 
 
 李浩泉
-domac.li$vipshop.com
+domac.li[at]vipshop.com
 
 * 什么是Etcd语言 
+.image etcd_logo.png
 
-_What_
+Etcd是CoreOS生态系统中处于连接各个节点通信和支撑集群服务协同运作的核心模块。
+
+官方最近发布了V3.0版本，增加了很多新的特性，优化了集群配置能力。
+
+
+官网地址： *http://etcd.io*
+
+* 分布式配置共享
+
+• 数据的分布式共享是分布式服务之间能够进行配置同步和协调操作的关键前提。
+
+• etcd提供的配置共享服务就是一种分布式的KV数据库，通过将数据同步存储在多个独立的服务节点上，从而提高数据的可靠性，避免单点故障导致数据丢失。
+
+• 除了Etcd类似的配置共享服务: Consul、ZooKeeper
+
+    Etcd在设计结构和原理上比两者更加简单和可靠，此外Etcd还支持TTL（Time To Live）和基于RESTful API。
+
+    在数据一致性方面，Etcd使用基于改良版的一致性算法替代ZooKeeper的Paxos算法用于处理数据的同步，
+    以保证节点间配置数据的一致性。
+
+* No NoSQL
+
+相比MongoDB、Redis，Etcd主要注重于应用的配置数据保存。与这些nosql不同，etcd会运行在集群的每一个节点上（官方说的代理节点），能够使运行在任意节点上的应用服务都能无差异地像从本地服务存取配置一样更新共享在整个集群中的信息。
+
+Etcd的节点角色
+    • Leader
+    • Follower
+    • Candidate
+    • Proxy
+
+* Etcd集群构建的三种形式
+
+• 静态集群
+
+• 基于Discovery服务器构建集群
+
+• 基于DNS的服务器资源记录构建集群
+
+.image etcd.png
+
+* Etcd 操作演示
+
+* Etcd 成员管理
+
+* Vulcand / Confd
+
+* 使用Docker构建Etcd测试集群
+
+    ETCD_VERSION=v3.0.0
+    TOKEN=my-etcd-token
+    CLUSTER_STATE=new
+    NAME_1=etcd-node-0
+    NAME_2=etcd-node-1
+    NAME_3=etcd-node-2
+    HOST_1=192.168.139.140
+    HOST_2=192.168.139.140
+    HOST_3=192.168.139.140
+    CLUSTER=${NAME_1}=http://${HOST_1}:2380,${NAME_2}=http://${HOST_2}:2380,${NAME_3}=http://${HOST_3}:2380
+    # 节点1
+    THIS_NAME=${NAME_1}
+    THIS_IP=${HOST_1}
+    sudo docker run --net=host --name etcd quay.io/coreos/etcd:${ETCD_VERSION} \
+        /usr/local/bin/etcd \
+        --data-dir=data.etcd --name ${THIS_NAME} \
+        --initial-advertise-peer-urls http://${THIS_IP}:2380 --listen-peer-urls http://${THIS_IP}:2380 \
+        --advertise-client-urls http://${THIS_IP}:2379 --listen-client-urls http://${THIS_IP}:2379 \
+        --initial-cluster ${CLUSTER} \
+        --initial-cluster-state ${CLUSTER_STATE} --initial-cluster-token ${TOKEN}
+
+    (略)
+
